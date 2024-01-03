@@ -58,9 +58,7 @@ function passData(e){
   selectCategory();
 }
 
-let i = 0;
-
-//Edited 6
+let arrayID = 0;
 function orderCart(e){
   const item = e.getAttribute("data-item");
   const price = e.getAttribute("data-price");
@@ -70,18 +68,17 @@ function orderCart(e){
   const itemCategory = e.getAttribute("data-cat");
   var itemPrice = price * qty;
 
-  orderIdArr.push(i);
+  orderIdArr.push(arrayID);
   orderItemArr.push(item);
   orderPriceArr.push(itemPrice);
   orderArr.push(item, price, imgUrl);
   orderListArr.push([item, qty, price, code, itemCategory]);
-  //console.log(orderArr);
 
   let orderList = document.getElementById('cart-list');
   var html = '<li class="row px-3 py-2">';
         html += '<div class="col-md-2"><span class="cart-img rounded-3"><img src="'+imgUrl+'"></div>';
         html += '<div class="col-md-6"><span class="cart-cat text-primary">'+itemCategory+'</span> <span class="cart-item">'+item+'</span><br>';
-        html += '<span class="cart-price"><span class="item-cart-qty"><button class="keypad-num btn btn-danger p-0" onclick="cartQty(this, 0, '+i+', '+price+')"><i class="fa-solid fa-minus"></i></button> <span class="item-qty">'+qty+'</span> <button class="keypad-num btn btn-success p-0" onclick="cartQty(this, 1, '+i+', '+price+')"><i class="fa-solid fa-plus"></i></button></span> x'+price+'</span></div>';
+        html += '<span class="cart-price"><span class="item-cart-qty"><button class="keypad-num btn btn-danger p-0" onclick="cartQty(this, 0, '+arrayID+', '+price+', '+code+')"><i class="fa-solid fa-minus"></i></button> <span class="item-qty">'+qty+'</span> <button class="keypad-num btn btn-success p-0" onclick="cartQty(this, 1, '+arrayID+', '+price+', '+code+')"><i class="fa-solid fa-plus"></i></button></span> x'+price+'</span></div>';
         html += '<div class="col-md-3 text-end"><span class="cart-item-prc fw-bold h6">₱ <span class="item-qty-price">'+parseFloat(itemPrice).toFixed(2)+'</span></div>';
         html += '<div class="col-md-1 text-end p-0"><button onclick="deleteItem('+i+', this)" class="btn btn-danger btn-trash"><i class="fa-regular fa-trash-can"></i></button></div>';
       html += '</li>';
@@ -185,7 +182,7 @@ function qtyAdjust(num) {
 
 
 
-function cartQty(event, num, id, price){
+function cartQty(event, num, id, price, itemcode){
   let parent = event.parentElement; // target element .item-cart-qty
   let children = parent.querySelector('.item-qty').innerText;
   //console.log(children); 
@@ -195,8 +192,13 @@ function cartQty(event, num, id, price){
     var totalQty = parseInt(children) + 1;
     parent.querySelector('.item-qty').innerText = totalQty;
 
+    console.log(num);
+    console.log(id);
+    console.log(orderListArr);
+
     orderPriceArr[id] = totalQty*price;
-    orderListArr[id][1]=totalQty;
+    //orderListArr[id][1]=totalQty;
+    updateQuantity(itemcode, totalQty);
     costQtyItems(parent, totalQty*price);
 
   }else{ // Minus qty
@@ -204,7 +206,8 @@ function cartQty(event, num, id, price){
 
     parent.querySelector('.item-qty').innerText = totalQty;
     orderPriceArr[id] = totalQty*price;
-    orderListArr[id][1]= totalQty;
+    //orderListArr[id][1]= totalQty;
+    updateQuantity(itemcode, totalQty);
 
     costQtyItems(parent, totalQty*price);
 
@@ -217,7 +220,9 @@ function cartQty(event, num, id, price){
       orderItemArr.splice(indexId, 1);
       orderPriceArr.splice(indexId, 1);
       orderArr.splice(indexId, 1);
-      orderListArr.splice(indexId, 1);
+
+      //orderListArr.splice(indexId, 1);
+      removeItemByItemCode(itemcode);
 
       costQtyItems(parent, totalQty*price);
       orderList.removeChild(parent.parentElement.parentElement.parentElement);
@@ -229,6 +234,36 @@ function cartQty(event, num, id, price){
   costItems();
   
 }
+
+
+function updateQuantity(itemCode, newQuantity) {
+  console.log(orderListArr);
+  // Find the index of the sub-array that contains the specified ItemCode
+  const index = orderListArr.findIndex(item => item[3] == itemCode);
+
+  if (index !== -1) {
+    // If the ItemCode is found, update the quantity
+    orderListArr[index][1] = newQuantity;
+    console.log(`Quantity updated for ItemCode ${itemCode} to ${newQuantity}`);
+  } else {
+    console.log(`ItemCode ${itemCode} not found`);
+  }
+}
+
+function removeItemByItemCode(itemCode) {
+  const index = orderListArr.findIndex(item => item[3] == itemCode);
+
+  if (index !== -1) {
+    // If the ItemCode is found, remove the array at the found index
+    orderListArr.splice(index, 1);
+    console.log(`Item with ItemCode ${itemCode} removed`);
+  } else {
+    console.log(`ItemCode ${itemCode} not found`);
+  }
+}
+
+// Usage: Remove an array by ItemCode
+removeItemByItemCode("202311140005");
 
 function costQtyItems(event, num){
   //console.log(event);
